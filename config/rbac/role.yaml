@@ -17,6 +17,22 @@ rules:
 - apiGroups:
   - azure-issuer.microsoft.com
   resources:
+  - certificaterequests
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - azure-issuer.microsoft.com
+  resources:
+  - certificaterequests/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - azure-issuer.microsoft.com
+  resources:
   - clusterissuers
   verbs:
   - get

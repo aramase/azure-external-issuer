@@ -19,36 +19,32 @@ package controllers
 import (
 	"context"
 
-	"github.com/go-logr/logr"
+	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	azureissuerv1alpha1 "github.com/aramase/azure-external-issuer/api/v1alpha1"
 )
 
-// ClusterIssuerReconciler reconciles a ClusterIssuer object
-type ClusterIssuerReconciler struct {
+// CertificateRequestReconciler reconciles a CertificateRequest object
+type CertificateRequestReconciler struct {
 	client.Client
-	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=azure-issuer.microsoft.com,resources=clusterissuers,verbs=get;list;watch
-// +kubebuilder:rbac:groups=azure-issuer.microsoft.com,resources=clusterissuers/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=azure-issuer.microsoft.com,resources=certificaterequests,verbs=get;list;watch
+// +kubebuilder:rbac:groups=azure-issuer.microsoft.com,resources=certificaterequests/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 
-func (r *ClusterIssuerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	_ = context.Background()
-	_ = r.Log.WithValues("clusterissuer", req.NamespacedName)
+func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	log := ctrl.LoggerFrom(ctx)
 
 	// your logic here
 
 	return ctrl.Result{}, nil
 }
 
-func (r *ClusterIssuerReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *CertificateRequestReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&azureissuerv1alpha1.ClusterIssuer{}).
+		For(&cmapi.CertificateRequest{}).
 		Complete(r)
 }
