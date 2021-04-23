@@ -25,13 +25,13 @@ import (
 
 	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/clock"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	azureissuerv1alpha1 "github.com/aramase/azure-external-issuer/api/v1alpha1"
-	"github.com/aramase/azure-external-issuer/controllers"
+	"github.com/aramase/azure-external-issuer/internal/controllers"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -110,8 +110,10 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controllers.CertificateRequestReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:                   mgr.GetClient(),
+		Scheme:                   mgr.GetScheme(),
+		ClusterResourceNamespace: clusterResourceNamespace,
+		Clock:                    clock.RealClock{},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "CertificateRequest")
 		os.Exit(1)

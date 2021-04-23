@@ -25,6 +25,8 @@ type IssuerSpec struct {
 	// KeyvaultName is the vault name in which issuer exists
 	KeyvaultName string `json:"keyvaultName"`
 
+	// IssuerName is the name of the issuer to use
+	IssuerName string `json:"issuerName"`
 	// A reference to a Secret in the same namespace as the referent. If the
 	// referent is a ClusterIssuer, the reference instead refers to the resource
 	// with the given name in the configured 'cluster resource namespace', which

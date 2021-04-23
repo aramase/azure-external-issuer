@@ -17,38 +17,7 @@ rules:
 - apiGroups:
   - azure-issuer.microsoft.com
   resources:
-  - certificaterequests
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - azure-issuer.microsoft.com
-  resources:
-  - certificaterequests/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - azure-issuer.microsoft.com
-  resources:
   - clusterissuers
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - azure-issuer.microsoft.com
-  resources:
-  - clusterissuers/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - azure-issuer.microsoft.com
-  resources:
   - issuers
   verbs:
   - get
@@ -57,7 +26,24 @@ rules:
 - apiGroups:
   - azure-issuer.microsoft.com
   resources:
+  - clusterissuers/status
   - issuers/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - certificaterequests
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - certificaterequests/status
   verbs:
   - get
   - patch

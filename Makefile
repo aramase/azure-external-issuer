@@ -78,3 +78,27 @@ CONTROLLER_GEN=$(GOBIN)/controller-gen
 else
 CONTROLLER_GEN=$(shell which controller-gen)
 endif
+
+# ==================================
+# E2E testing
+# ==================================
+.PHONY: kind-cluster
+kind-cluster: ## Use Kind to create a Kubernetes cluster for E2E tests
+kind-cluster: ${KIND}
+	 ${KIND} get clusters | grep ${K8S_CLUSTER_NAME} || ${KIND} create cluster --name ${K8S_CLUSTER_NAME}
+
+.PHONY: kind-load
+kind-load: ## Load all the Docker images into Kind
+	${KIND} load docker-image --name ${K8S_CLUSTER_NAME} ${IMG}
+
+.PHONY: kind-export-logs
+kind-export-logs:
+	${KIND} export logs --name ${K8S_CLUSTER_NAME} ${E2E_ARTIFACTS_DIRECTORY}
+
+# cert-manager
+CERT_MANAGER_VERSION ?= 1.3.0
+
+.PHONY: deploy-cert-manager
+deploy-cert-manager: ## Deploy cert-manager in the configured Kubernetes cluster in ~/.kube/config
+	kubectl apply --filename=https://github.com/jetstack/cert-manager/releases/download/v${CERT_MANAGER_VERSION}/cert-manager.yaml
+	kubectl wait --for=condition=Available --timeout=300s apiservice v1.cert-manager.io
