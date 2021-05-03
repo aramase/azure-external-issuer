@@ -6,3 +6,4 @@ spec:
   keyvaultName: kindkv
   issuerName: test-issuer
   authSecretName: secrets-store-creds
+  isSelfSigned: true

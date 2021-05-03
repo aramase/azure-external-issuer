@@ -82,6 +82,9 @@ endif
 # ==================================
 # E2E testing
 # ==================================
+KIND := kind
+K8S_CLUSTER_NAME := kind
+
 .PHONY: kind-cluster
 kind-cluster: ## Use Kind to create a Kubernetes cluster for E2E tests
 kind-cluster: ${KIND}

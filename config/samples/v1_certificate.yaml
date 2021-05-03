@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: azure-crt
+spec:
+  secretName: azure-crt-secret
+  dnsNames:
+  - foo.example.com
+  - bar.example.com
+  issuerRef:
+    name: issuer-sample
+    kind: Issuer
+    group: azure-issuer.microsoft.com

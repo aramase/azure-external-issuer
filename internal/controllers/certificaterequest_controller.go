@@ -52,6 +52,7 @@ type CertificateRequestReconciler struct {
 	Scheme                   *runtime.Scheme
 	Clock                    clock.Clock
 	ClusterResourceNamespace string
+	CheckApprovedCondition   bool
 }
 
 // +kubebuilder:rbac:groups=cert-manager.io,resources=certificaterequests,verbs=get;list;watch
@@ -124,10 +125,12 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 		return ctrl.Result{}, nil
 	}
 
-	// If CertificateRequest has not been approved, exit early.
-	if !cmutil.CertificateRequestIsApproved(&certificateRequest) {
-		log.Info("CertificateRequest has not been approved yet. Ignoring.")
-		return ctrl.Result{}, nil
+	if r.CheckApprovedCondition {
+		// If CertificateRequest has not been approved, exit early.
+		if !cmutil.CertificateRequestIsApproved(&certificateRequest) {
+			log.Info("CertificateRequest has not been approved yet. Ignoring.")
+			return ctrl.Result{}, nil
+		}
 	}
 
 	// Add a Ready condition if one does not already exist
@@ -198,7 +201,7 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 		return ctrl.Result{}, fmt.Errorf("failed to get issuer client for %s: %v", issuerSpec.IssuerName, err)
 	}
 
-	signed, err := issuerClient.Sign(ctx, certificateRequest.Spec.Request, certificateRequest.Name, issuerSpec.IssuerName)
+	signed, err := issuerClient.Sign(ctx, certificateRequest.Spec.Request, certificateRequest.Name, *issuerSpec)
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("%w: %v", errSignerSign, err)
 	}

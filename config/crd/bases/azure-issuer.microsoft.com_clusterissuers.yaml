@@ -43,6 +43,10 @@ spec:
                   resource namespace', which is set as a flag on the controller component
                   (and defaults to the namespace that the controller runs in).
                 type: string
+              isSelfSigned:
+                description: IsSelfSigned is set to true if the issuer is for a self-signed
+                  certificate from keyvault.
+                type: boolean
               issuerName:
                 description: IssuerName is the name of the issuer to use
                 type: string
@@ -51,6 +55,7 @@ spec:
                 type: string
             required:
             - authSecretName
+            - isSelfSigned
             - issuerName
             - keyvaultName
             type: object

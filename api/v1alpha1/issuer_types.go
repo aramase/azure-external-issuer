@@ -33,6 +33,9 @@ type IssuerSpec struct {
 	// is set as a flag on the controller component (and defaults to the
 	// namespace that the controller runs in).
 	AuthSecretName string `json:"authSecretName"`
+	// IsSelfSigned is set to true if the issuer is for a self-signed certificate
+	// from keyvault.
+	IsSelfSigned bool `json:"isSelfSigned"`
 }
 
 // IssuerStatus defines the observed state of Issuer

@@ -18,20 +18,23 @@ package signer
 
 import (
 	"context"
+	"encoding/pem"
 	"fmt"
 	"regexp"
+	"time"
 
 	kv "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/aramase/azure-external-issuer/api/v1alpha1"
 	"github.com/jetstack/cert-manager/pkg/util/pki"
 )
 
 // Signer is an abstraction of the certificate authority
 type Signer interface {
-	Sign(context.Context, []byte, string, string) ([]byte, error)
+	Sign(context.Context, []byte, string, v1alpha1.IssuerSpec) ([]byte, error)
 	CheckIssuer(context.Context, string) error
 }
 
@@ -80,16 +83,23 @@ func (s *caSigner) CheckIssuer(ctx context.Context, issuerName string) error {
 	return err
 }
 
-func (s *caSigner) Sign(ctx context.Context, certificateSigningRequest []byte, name, issuerName string) ([]byte, error) {
+func (s *caSigner) Sign(ctx context.Context, certificateSigningRequest []byte, name string, issuerSpec v1alpha1.IssuerSpec) ([]byte, error) {
 	csr, err := pki.DecodeX509CertificateRequestBytes(certificateSigningRequest)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode CSR: %+v", err)
 	}
 
+	issuerName := issuerSpec.IssuerName
+	if issuerSpec.IsSelfSigned {
+		issuerName = "Self"
+	}
+
+	fmt.Println("csr.RawSubject ", string(csr.RawSubject))
+	fmt.Println("csr.DNSNames ", csr.DNSNames)
 	params := kv.CertificateCreateParameters{
 		CertificatePolicy: &kv.CertificatePolicy{
 			X509CertificateProperties: &kv.X509CertificateProperties{
-				Subject:                 to.StringPtr(string(csr.RawSubject)),
+				// Subject:                 to.StringPtr(string(csr.RawSubject)),
 				SubjectAlternativeNames: &kv.SubjectAlternativeNames{DNSNames: &csr.DNSNames},
 			},
 			IssuerParameters: &kv.IssuerParameters{
@@ -98,11 +108,31 @@ func (s *caSigner) Sign(ctx context.Context, certificateSigningRequest []byte, n
 		},
 		CertificateAttributes: &kv.CertificateAttributes{},
 	}
+
 	_, err = s.baseClient.CreateCertificate(ctx, s.vaultURL, name, params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create certificate %s: %v", name, err)
 	}
-	return nil, nil
+
+	var pemData []byte
+	var certBundle kv.CertificateBundle
+	for {
+		certBundle, err = s.baseClient.GetCertificate(ctx, s.vaultURL, name, "")
+		if err != nil {
+			return nil, fmt.Errorf("failed to get certificate %s: %v", name, err)
+		}
+		if *certBundle.Attributes.Enabled {
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
+
+	certBlock := &pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: *certBundle.Cer,
+	}
+	pemData = append(pemData, pem.EncodeToMemory(certBlock)...)
+	return pemData, nil
 }
 
 // parseCloudEnvironment returns azure environment by name
